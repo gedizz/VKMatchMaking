@@ -47,12 +47,17 @@ async def channel(ctx):
 @bot.command()
 async def register(ctx, *args: str):
     arguments = list(args)
+    # Check for invalid steamID cases
     if len(arguments) != 1 or len(arguments[0]) != 17:
         await ctx.send("Please provide a valid steamID")
         return
-
+    # Check if the ID is already registered or not
     if await DatabaseManager.CheckExistence(arguments[0]) is True:
         await ctx.send("Steam ID already registered")
+        return
+
+    result = await DatabaseManager.RegisterPlayer(arguments[0], ctx.message.author.id)
+    await ctx.send(result)
 
 
 
