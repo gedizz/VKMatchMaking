@@ -17,3 +17,45 @@ def GetFactionData(factionName: str):
         return factions[factionName]
     else:
         raise ValueError("Invalid faction name")
+
+
+def divide_players_into_teams(data):
+    # Sort the players by MMR
+    sorted_data = sorted(data, key=lambda x: x["mmr"], reverse=True)
+
+    # Initialize teams
+    team1 = []
+    team2 = []
+
+    # Initialize class counts for both teams
+    class_counts1 = {"Infantry": 0, "Cavalry": 0, "Ranged": 0}
+    class_counts2 = {"Infantry": 0, "Cavalry": 0, "Ranged": 0}
+
+    for player in sorted_data:
+        # Determine which team has lower MMR and class count
+        team1_mmr = sum(p["mmr"] for p in team1)
+        team2_mmr = sum(p["mmr"] for p in team2)
+
+        if team1_mmr <= team2_mmr:
+            selected_team = team1
+            class_counts = class_counts1
+        else:
+            selected_team = team2
+            class_counts = class_counts2
+
+        primary_class = player["class1"]
+        secondary_class = player["class2"]
+
+        # Prioritize primary class and check if it doesn't exceed the class count limit (6 players / 3 classes = 2 players per class)
+        if class_counts[primary_class] < 2:
+            selected_team.append(player)
+            class_counts[primary_class] += 1
+        elif class_counts[secondary_class] < 2:  # Use secondary class if primary class count limit is exceeded
+            player["class1"] = secondary_class  # Update the primary class to secondary class for display purposes
+            selected_team.append(player)
+            class_counts[secondary_class] += 1
+        else:  # If both primary and secondary classes are full, add the player to the team with lower MMR
+            selected_team.append(player)
+            class_counts[primary_class] += 1
+
+    return [team1, team2]
